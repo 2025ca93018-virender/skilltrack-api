@@ -9,6 +9,8 @@ public interface ProfileService {
 
     ProfileDto createProfile(ProfileDto profileDTO);
 
+    void updateProfile(String email, ProfileDto profileDto);
+
     String saveProjects(List<ProjectDto> projects);
 
 

@@ -5,6 +5,7 @@ import com.example.skilltrack.dto.ProfileDto;
 import com.example.skilltrack.dto.ProjectDto;
 import com.example.skilltrack.service.ProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,15 +23,18 @@ public class ProfileController {
         return "Profile created successfully";
     }
 
+    @PutMapping("/profiles/{email}")
+    public String updateProfile(
+            @PathVariable String email,
+            @RequestBody ProfileDto profileDto) {
+
+        profileService.updateProfile(email, profileDto);
+        return "Profile updated successfully";
+    }
+
     @PostMapping("/save/projects")
     public String saveProjects(@RequestBody List<ProjectDto> projects) {
         return profileService.saveProjects(projects);
     }
 
-
-
-//    @GetMapping("/{email}")
-//    public ProfileDto getProfileByEmail(@PathVariable String email) {
-//        return profileService.getProfileByEmail(email);
-//    }
 }

@@ -30,6 +30,26 @@ public class ProfileServiceImpl implements ProfileService {
         return mapToDTO(saved);
     }
 
+    @Override
+    public void updateProfile(String email, ProfileDto dto) {
+
+        Profile existingProfile = profileRepo.findByEmail(email);
+
+        if (existingProfile == null) {
+            throw new RuntimeException("Profile not found with email: " + email);
+        }
+
+        existingProfile.setName(dto.getName());
+        existingProfile.setBio(dto.getBio());
+        existingProfile.setEducation(dto.getEducation());
+        existingProfile.setMajor(dto.getMajor());
+        existingProfile.setGraduationYear(dto.getGraduationYear());
+        existingProfile.setSkills(dto.getSkills());
+
+        profileRepo.save(existingProfile);
+    }
+
+
     // -------- PROJECTS --------
     @Override
     public String saveProjects(List<ProjectDto> projects) {
@@ -80,4 +100,6 @@ public class ProfileServiceImpl implements ProfileService {
         p.setFeatured(dto.isFeatured());
         return p;
     }
+
+
 }
