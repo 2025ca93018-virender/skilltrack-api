@@ -4,6 +4,7 @@ import com.example.skilltrack.dto.ApiResponse;
 import com.example.skilltrack.dto.ProfileDto;
 import com.example.skilltrack.dto.ProjectDto;
 import com.example.skilltrack.service.ProfileService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/skilltrack")
+@Tag(name = "SkillTrack APIS")
 public class ProfileController {
 
     @Autowired
