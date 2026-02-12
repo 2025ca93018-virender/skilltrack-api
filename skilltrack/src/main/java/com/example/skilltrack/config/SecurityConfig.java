@@ -23,6 +23,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/skilltrack/healthcheck").permitAll()
                         .requestMatchers("/skilltrack/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
