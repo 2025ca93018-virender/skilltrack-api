@@ -1,11 +1,12 @@
 package com.example.skilltrack.controller;
 
-import com.example.skilltrack.dto.ApiResponse;
+import com.example.skilltrack.dto.UpdateFeedbackRequest;
 import com.example.skilltrack.dto.ProfileDto;
 import com.example.skilltrack.dto.ProjectDto;
+import com.example.skilltrack.entity.User;
+import com.example.skilltrack.security.SecurityUtils;
 import com.example.skilltrack.service.ProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,7 +35,14 @@ public class ProfileController {
 
     @PostMapping("/save/projects")
     public String saveProjects(@RequestBody List<ProjectDto> projects) {
-        return profileService.saveProjects(projects);
+        User user = SecurityUtils.getCurrentUser();
+        return profileService.saveProjects(projects,user);
+    }
+
+    @PostMapping("/save/feedback")
+    public String updateFeedback(@RequestBody UpdateFeedbackRequest request) {
+        User reviewer = SecurityUtils.getCurrentUser();
+        return profileService.saveProjectFeedback(request, reviewer);
     }
 
 }

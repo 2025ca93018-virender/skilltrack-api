@@ -1,13 +1,19 @@
 package com.example.skilltrack.service.impl;
 
+import com.example.skilltrack.dto.UpdateFeedbackRequest;
 import com.example.skilltrack.dto.ProfileDto;
 import com.example.skilltrack.dto.ProjectDto;
 import com.example.skilltrack.entity.Profile;
 import com.example.skilltrack.entity.Project;
+import com.example.skilltrack.entity.ProjectFeedback;
+import com.example.skilltrack.entity.User;
+import com.example.skilltrack.event.FeedbackSubmittedEvent;
 import com.example.skilltrack.repository.ProfileRepo;
+import com.example.skilltrack.repository.ProjectFeedbackRepository;
 import com.example.skilltrack.repository.ProjectRepo;
 import com.example.skilltrack.service.ProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +27,17 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Autowired
     private ProjectRepo projectRepo;
+
+    @Autowired
+    private ProjectFeedbackRepository projectFeedbackRepository;
+
+    @Autowired
+    private final ApplicationEventPublisher eventPublisher;
+
+    public ProfileServiceImpl(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
 
     // -------- PROFILE --------
     @Override
@@ -52,14 +69,58 @@ public class ProfileServiceImpl implements ProfileService {
 
     // -------- PROJECTS --------
     @Override
-    public String saveProjects(List<ProjectDto> projects) {
+    public String saveProjects(List<ProjectDto> projects,User user) {
         List<Project> entities = projects.stream()
-                .map(this::mapProjectToEntity)
+                .map(dto -> mapProjectToEntity(dto, user))
                 .collect(Collectors.toList());
 
         projectRepo.saveAll(entities);
         return "Projects saved successfully";
     }
+
+    @Override
+    public String saveProjectFeedback(UpdateFeedbackRequest request, User reviewer) {
+
+        Project project = projectRepo.findById(request.getProjectId())
+                .orElseThrow(() ->
+                        new RuntimeException("Project not found with id: " + request.getProjectId()));
+
+        ProjectFeedback existingFeedback =
+                projectFeedbackRepository.findByProject(project);
+
+        ProjectFeedback savedFeedback;
+
+        if (existingFeedback != null) {
+            existingFeedback.setStarRating(request.getStarRating());
+            existingFeedback.setWrittenFeedback(request.getWrittenFeedback());
+            savedFeedback = projectFeedbackRepository.save(existingFeedback);
+        } else {
+            ProjectFeedback feedback = ProjectFeedback.builder()
+                    .project(project)
+                    .reviewer(reviewer)
+                    .starRating(request.getStarRating())
+                    .writtenFeedback(request.getWrittenFeedback())
+                    .build();
+
+            savedFeedback = projectFeedbackRepository.save(feedback);
+        }
+
+        // Prevent self-review notification
+        if (!reviewer.getId().equals(project.getUser().getId())) {
+            eventPublisher.publishEvent(
+                    new FeedbackSubmittedEvent(
+                            project.getId(),
+                            project.getUser().getId(),
+                            reviewer.getId(),
+                            reviewer.getEmail(),
+                            request.getStarRating()
+                    )
+            );
+        }
+
+        return "Feedback saved successfully";
+    }
+
 
     // -------- MAPPERS --------
     private Profile mapToEntity(ProfileDto dto) {
@@ -86,7 +147,7 @@ public class ProfileServiceImpl implements ProfileService {
         return dto;
     }
 
-    private Project mapProjectToEntity(ProjectDto dto) {
+    private Project mapProjectToEntity(ProjectDto dto,User user) {
         Project p = new Project();
         p.setId(dto.getId());
         p.setTitle(dto.getTitle());
@@ -98,6 +159,7 @@ public class ProfileServiceImpl implements ProfileService {
         p.setStartDate(dto.getStartDate());
         p.setEndDate(dto.getEndDate());
         p.setFeatured(dto.isFeatured());
+        p.setUser(user);
         return p;
     }
 

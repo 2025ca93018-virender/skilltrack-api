@@ -30,5 +30,8 @@ public class Profile {
     @Column(name = "skill")
     private List<String> skills;
 
+    @OneToOne(mappedBy = "profile")
+    private User user;
+
     // getters and setters
 }
