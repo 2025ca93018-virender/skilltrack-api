@@ -3,10 +3,17 @@ package com.example.skilltrack.controller;
 import com.example.skilltrack.dto.UpdateFeedbackRequest;
 import com.example.skilltrack.dto.ProfileDto;
 import com.example.skilltrack.dto.ProjectDto;
+import com.example.skilltrack.entity.Project;
+import com.example.skilltrack.entity.Role;
 import com.example.skilltrack.entity.User;
 import com.example.skilltrack.security.SecurityUtils;
 import com.example.skilltrack.service.ProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,6 +44,19 @@ public class ProfileController {
     public String saveProjects(@RequestBody List<ProjectDto> projects) {
         User user = SecurityUtils.getCurrentUser();
         return profileService.saveProjects(projects,user);
+    }
+
+    @GetMapping("/projects")
+    public ResponseEntity<?> getAll(
+            @RequestParam(required = false) String search,
+            Pageable pageable) {
+        User user = SecurityUtils.getCurrentUser();
+        if(user.getRole().equals(Role.TEACHER)) {
+            return ResponseEntity.ok(profileService.getAllProjects(search, pageable));
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Access Denied: Only teachers can view all projects.");
+        }
     }
 
     @PostMapping("/save/feedback")

@@ -14,6 +14,8 @@ import com.example.skilltrack.repository.ProjectRepo;
 import com.example.skilltrack.service.ProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -77,6 +79,12 @@ public class ProfileServiceImpl implements ProfileService {
         projectRepo.saveAll(entities);
         return "Projects saved successfully";
     }
+
+    @Override
+    public Page<Project> getAllProjects(String search, Pageable pageable) {
+        return projectRepo.findAll(pageable);
+    }
+
 
     @Override
     public String saveProjectFeedback(UpdateFeedbackRequest request, User reviewer) {
